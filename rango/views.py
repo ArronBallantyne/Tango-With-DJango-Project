@@ -42,6 +42,10 @@ def show_category(request, category_name_slug):
     try:
         category = Category.objects.get(slug=category_name_slug)
 
+        category.views = category.views + 1
+
+        category.save()
+
         pages = Page.objects.filter(category=category)
 
         context_dict['pages'] = pages

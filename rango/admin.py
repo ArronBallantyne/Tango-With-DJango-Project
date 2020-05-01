@@ -4,6 +4,7 @@ from rango.models import UserProfile
 
 class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug':('name',)}
+    list_display = ('name', 'views', 'likes')
 
 admin.site.register(Category, CategoryAdmin)
 
