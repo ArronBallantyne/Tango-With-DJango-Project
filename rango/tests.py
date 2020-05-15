@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from rango import views, Stub
+from rango import views, Fake
 from rango.models import Category
+
+from unittest.mock import MagicMock, Mock
 
 
 class CategoryMethodTests(TestCase):
@@ -39,10 +41,10 @@ class IndexViewTests(TestCase):
         """
         Checks whether categories are displayed correctly when present.
         """
-        views.category_list = Stub.Category.objects
-        Stub.add_category('Python', 1, 1)
-        Stub.add_category('C++', 1, 1)
-        Stub.add_category('Erlang', 1, 1)
+        views.useFake = True
+        Fake.add_category('Python', 1, 1)
+        Fake.add_category('C++', 1, 1)
+        Fake.add_category('Erlang', 1, 1)
 
         response = self.client.get(reverse('rango:index'))
         self.assertEqual(response.status_code, 200)
@@ -51,5 +53,26 @@ class IndexViewTests(TestCase):
         self.assertContains(response, "Erlang")
         num_categories = len(response.context['categories'])
         self.assertEquals(num_categories, 3)
-        Stub.delete()
+        Fake.delete()
+        views.useFake = False
 
+class AboutViewTests(TestCase):
+    def test_visit_count_displays(self):
+        views.useStub = True
+
+        response = self.client.get(reverse('rango:about'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visits: 2")
+
+        views.useStub = False
+
+
+    def test_visit_count_increments(self):
+        temp = views.get_server_side_cookie
+        views.get_server_side_cookie = MagicMock(side_effect=["4", "2020-01-01 12:00:00.759963"])
+
+        response = self.client.get(reverse('rango:about'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visits: 5")
+
+        views.get_server_side_cookie = temp
